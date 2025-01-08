@@ -1,13 +1,17 @@
 import logging
+import sys
 from enum import Enum
 from functools import partial
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 import click
 
 from .click_common import EnumType, LiteralParamType, command
 from .device import Device, DeviceStatus  # noqa: F401
 from .exceptions import DeviceException
+
+if sys.version_info >= (3, 11):
+    from enum import member
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,11 +24,16 @@ class MiotValueType(Enum):
 
     Int = int
     Float = float
-    Bool = partial(_str2bool)
+
+    if sys.version_info >= (3, 11):
+        Bool = member(partial(_str2bool))
+    else:
+        Bool = partial(_str2bool)
+
     Str = str
 
 
-MiotMapping = Dict[str, Dict[str, Any]]
+MiotMapping = dict[str, dict[str, Any]]
 
 
 def _filter_request_fields(req):
@@ -58,7 +67,7 @@ class MiotDevice(Device):
     """
 
     mapping: MiotMapping  # Deprecated, use _mappings instead
-    _mappings: Dict[str, MiotMapping] = {}
+    _mappings: dict[str, MiotMapping] = {}
 
     def __init__(
         self,
